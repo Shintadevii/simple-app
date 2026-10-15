@@ -16,15 +16,21 @@ pipeline {
         }
         stage('Push Docker Image') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
-                        bat "docker push %IMAGE_NAME%:%BUILD_NUMBER%"
-                        bat "docker tag %IMAGE_NAME%:%BUILD_NUMBER% %IMAGE_NAME%:latest"
-                        bat "docker push %IMAGE_NAME%:latest"
-                    }
+                withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS, usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    bat 'docker login -u %USER% -p %PASS%'
+                    bat "docker push %IMAGE_NAME%:%BUILD_NUMBER%"
+                    bat "docker tag %IMAGE_NAME%:%BUILD_NUMBER% %IMAGE_NAME%:latest"
+                    bat "docker push %IMAGE_NAME%:latest"
                 }
             }
+        }
+    }
+    post {
+        success {
+            echo 'Pipeline berhasil dijalankan dan image berhasil di-push ke Docker Hub!'
+        }
+        failure {
+            echo 'Pipeline gagal, silakan periksa kembali log error.'
         }
     }
 }
